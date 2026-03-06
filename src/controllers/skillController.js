@@ -18,7 +18,7 @@ const getSkills = async (req, res) => {
 // @access  Private
 const upsertSkill = async (req, res) => {
     try {
-        const { name, level, hoursSpent } = req.body;
+        const { name, level, hoursSpent, category } = req.body;
 
         if (!name) return res.status(400).json({ message: "Skill name is required" });
 
@@ -28,6 +28,7 @@ const upsertSkill = async (req, res) => {
                 $set: {
                     level: level || 1,
                     hoursSpent: hoursSpent || 0,
+                    category: category || 'Other',
                     lastPracticed: new Date()
                 }
             },
@@ -58,13 +59,19 @@ const getRadarData = async (req, res) => {
     }
 };
 
-// Internal Helper to increment skill hours (to be called by task/time controller)
+// Internal Helper to increment skill hours
 const incrementSkillGrowth = async (userId, skillName, hours) => {
     try {
-        // Calculate level gain: 1 level per 10 hours (simple logic)
-        const skill = await Skill.findOne({ userId, name: skillName });
+        let skill = await Skill.findOne({ userId, name: skillName });
 
-        if (newLevel > (skill?.level || 1)) {
+        const currentHours = skill ? skill.hoursSpent : 0;
+        const currentLevel = skill ? skill.level : 1;
+        const newHours = currentHours + hours;
+
+        // Growth logic: Level up every 5 hours
+        const newLevel = Math.min(100, 1 + Math.floor(newHours / 5));
+
+        if (newLevel > currentLevel) {
             await addXP(userId, 'SKILL_LEVEL');
         }
 

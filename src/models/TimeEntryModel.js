@@ -28,7 +28,7 @@ const timeEntrySchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['Focus', 'Normal', 'Manual'],
+            enum: ['Focus', 'Normal', 'Manual', 'Coding', 'Research', 'Meeting', 'Learning'],
             default: 'Normal',
         },
         status: {

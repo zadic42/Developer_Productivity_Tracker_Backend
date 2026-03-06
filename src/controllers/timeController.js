@@ -25,7 +25,9 @@ const startTimer = async (req, res) => {
             status: 'Active'
         });
 
-        res.status(201).json(timeEntry);
+        const populatedEntry = await TimeEntry.findById(timeEntry._id).populate('taskId');
+
+        res.status(201).json(populatedEntry);
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
@@ -65,6 +67,7 @@ const stopTimer = async (req, res) => {
                         await incrementSkillGrowth(req.user.id, tag, hours);
                     }
                 }
+                await task.save();
             }
         }
 
@@ -152,9 +155,39 @@ const getWeeklySummary = async (req, res) => {
     }
 };
 
+// @desc    Get active timer
+// @route   GET /api/time/active
+// @access  Private
+const getActiveTimer = async (req, res) => {
+    try {
+        const activeTimer = await TimeEntry.findOne({ userId: req.user.id, status: 'Active' })
+            .populate('taskId');
+        res.status(200).json(activeTimer);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// @desc    Get recent time sessions
+// @route   GET /api/time/history
+// @access  Private
+const getTimeHistory = async (req, res) => {
+    try {
+        const history = await TimeEntry.find({ userId: req.user.id, status: 'Completed' })
+            .populate('taskId')
+            .sort({ startTime: -1 })
+            .limit(10);
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = {
     startTimer,
     stopTimer,
     addManualTime,
-    getWeeklySummary
+    getWeeklySummary,
+    getActiveTimer,
+    getTimeHistory
 };

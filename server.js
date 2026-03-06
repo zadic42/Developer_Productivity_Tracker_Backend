@@ -14,6 +14,7 @@ const gamificationRoutes = require('./src/routes/gamificationRoutes.js')
 const notificationRoutes = require('./src/routes/notificationRoutes.js')
 const teamRoutes = require('./src/routes/teamRoutes.js')
 const analyticsRoutes = require('./src/routes/analyticsRoutes.js')
+const userRoutes = require('./src/routes/userRoutes.js')
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/gamification', gamificationRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/teams', teamRoutes)
 app.use('/api/analytics', analyticsRoutes)
+app.use('/api/user', userRoutes)
 
 
 app.get('/', (req, res) => {

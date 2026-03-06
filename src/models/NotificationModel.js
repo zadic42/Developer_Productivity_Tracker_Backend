@@ -16,7 +16,7 @@ const notificationSchema = new mongoose.Schema(
             enum: ['Reminder', 'Deadline', 'Goal', 'Achievement'],
             default: 'Reminder',
         },
-        read: {
+        isRead: {
             type: Boolean,
             default: false,
         },

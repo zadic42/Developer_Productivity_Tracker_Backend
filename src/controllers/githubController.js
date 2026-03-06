@@ -37,7 +37,16 @@ const getGithubMetrics = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user || !user.githubUsername) {
-            return res.status(400).json({ message: "GitHub username not set" });
+            return res.status(200).json({
+                username: "",
+                totalRepos: 0,
+                commits: 0,
+                prs: 0,
+                issues: 0,
+                topLanguage: "N/A",
+                topLanguages: {},
+                metrics: { commitsThisMonth: 0 }
+            });
         }
 
         const username = user.githubUsername;
@@ -72,12 +81,13 @@ const getGithubMetrics = async (req, res) => {
         res.status(200).json({
             username,
             totalRepos,
-            totalPRs,
-            totalIssues,
-            totalCommits,
+            commits: totalCommits,
+            prs: totalPRs,
+            issues: totalIssues,
             topLanguage,
+            topLanguages: languages, // This provides the distribution for the chart
             metrics: {
-                commitsThisMonth: totalCommits, // Search API total is a good proxy for now
+                commitsThisMonth: totalCommits,
             }
         });
     } catch (error) {
@@ -93,7 +103,7 @@ const getCommitStreak = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user || !user.githubUsername) {
-            return res.status(400).json({ message: "GitHub username not set" });
+            return res.status(200).json({ streak: 0, weeklyActivity: [] });
         }
         const username = user.githubUsername;
         const headers = getGithubHeaders();
@@ -113,7 +123,6 @@ const getCommitStreak = async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
         let current = new Date(today);
 
-        // Check if there's a commit today or yesterday to start/continue the streak
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().split('T')[0];
