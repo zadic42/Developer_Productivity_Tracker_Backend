@@ -19,10 +19,14 @@ const userSchema = new mongoose.Schema(
             required: true,
             minlength: 6,
         },
+        githubUsername: {
+            type: String,
+            trim: true,
+        },
     },
     {
         timestamps: true,
     }
 );
 
-module.exports = mongoose.model("User",userSchema);
+module.exports = mongoose.model("User", userSchema);
