@@ -7,6 +7,7 @@ const authRoutes = require('./src/routes/authRoutes.js')
 const taskRoutes = require('./src/routes/taskRoutes.js')
 const timeRoutes = require('./src/routes/timeRoutes.js')
 const githubRoutes = require('./src/routes/githubRoutes.js')
+const skillRoutes = require('./src/routes/skillRoutes.js')
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/time', timeRoutes)
 app.use('/api/github', githubRoutes)
+app.use('/api/skills', skillRoutes)
 
 
 app.get('/', (req, res) => {

@@ -1,4 +1,5 @@
 const Task = require('../models/TaskModel');
+const { incrementSkillGrowth } = require('./skillController');
 
 // @desc    Create a new task
 // @route   POST /api/tasks

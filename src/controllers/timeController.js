@@ -1,5 +1,6 @@
 const TimeEntry = require('../models/TimeEntryModel');
 const Task = require('../models/TaskModel');
+const { incrementSkillGrowth } = require('./skillController');
 
 // @desc    Start a timer
 // @route   POST /api/time/start
@@ -52,8 +53,16 @@ const stopTimer = async (req, res) => {
         if (timeEntry.taskId) {
             const task = await Task.findById(timeEntry.taskId);
             if (task) {
-                task.actualTime = (task.actualTime || 0) + (duration / 60); // convert minutes to hours
+                const hours = duration / 60;
+                task.actualTime = (task.actualTime || 0) + hours;
                 await task.save();
+
+                // Increment Skill Growth for each tag
+                if (task.tags && task.tags.length > 0) {
+                    for (const tag of task.tags) {
+                        await incrementSkillGrowth(req.user.id, tag, hours);
+                    }
+                }
             }
         }
 
