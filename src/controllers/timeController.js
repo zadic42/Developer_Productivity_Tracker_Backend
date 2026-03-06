@@ -1,6 +1,7 @@
 const TimeEntry = require('../models/TimeEntryModel');
 const Task = require('../models/TaskModel');
 const { incrementSkillGrowth } = require('./skillController');
+const { addXP } = require('./gamificationController');
 
 // @desc    Start a timer
 // @route   POST /api/time/start
@@ -55,7 +56,8 @@ const stopTimer = async (req, res) => {
             if (task) {
                 const hours = duration / 60;
                 task.actualTime = (task.actualTime || 0) + hours;
-                await task.save();
+                // Increment XP for coding hours
+                await addXP(req.user.id, 'CODING_HOUR', hours);
 
                 // Increment Skill Growth for each tag
                 if (task.tags && task.tags.length > 0) {

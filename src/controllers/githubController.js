@@ -66,7 +66,6 @@ const getGithubMetrics = async (req, res) => {
         const totalIssues = issuesRes.data.total_count;
 
         // 4. Fetch Commits (Simplified approach for last 30 days)
-        // Search API is better for cross-repo commit counts
         const commitsRes = await axios.get(`${GITHUB_BASE_URL}/search/commits?q=author:${username}`, { headers });
         const totalCommits = commitsRes.data.total_count;
 
@@ -87,16 +86,19 @@ const getGithubMetrics = async (req, res) => {
     }
 };
 
-// @desc    Get Commit Streak
+// @desc    Get Commit Streak and Weekly Activity
 // @route   GET /api/github/streak
 // @access  Private
 const getCommitStreak = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
+        if (!user || !user.githubUsername) {
+            return res.status(400).json({ message: "GitHub username not set" });
+        }
         const username = user.githubUsername;
         const headers = getGithubHeaders();
 
-        // Fetch events to calculate streak (events API is good for recent activity)
+        // Fetch events to calculate streak and weekly activity
         const eventsRes = await axios.get(`${GITHUB_BASE_URL}/users/${username}/events`, { headers });
         const pushEvents = eventsRes.data.filter(e => e.type === 'PushEvent');
 
@@ -106,15 +108,18 @@ const getCommitStreak = async (req, res) => {
             commitDates.add(date);
         });
 
-        const sortedDates = Array.from(commitDates).sort((a, b) => new Date(b) - new Date(a));
-
+        // 1. Calculate Streak
         let streak = 0;
-        let today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
         let current = new Date(today);
 
-        // Check if there's a commit today or yesterday to start the streak
-        if (sortedDates.includes(today) || sortedDates.includes(new Date(current.setDate(current.getDate() - 1)).toISOString().split('T')[0])) {
-            current = new Date(today);
+        // Check if there's a commit today or yesterday to start/continue the streak
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (commitDates.has(today) || commitDates.has(yesterdayStr)) {
+            current = commitDates.has(today) ? new Date(today) : new Date(yesterdayStr);
             while (true) {
                 const dateStr = current.toISOString().split('T')[0];
                 if (commitDates.has(dateStr)) {
@@ -126,8 +131,22 @@ const getCommitStreak = async (req, res) => {
             }
         }
 
-        res.status(200).json({ streak });
+        // 2. Prepare Weekly Trend (Last 7 days)
+        const weeklyActivity = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const count = pushEvents.filter(e => e.created_at.startsWith(dateStr)).length;
+            weeklyActivity.push({
+                day: dateStr,
+                commits: count
+            });
+        }
+
+        res.status(200).json({ streak, weeklyActivity });
     } catch (error) {
+        console.error("GitHub API Streak Error:", error.response?.data || error.message);
         res.status(500).json({ message: "Error calculating streak", error: error.message });
     }
 };

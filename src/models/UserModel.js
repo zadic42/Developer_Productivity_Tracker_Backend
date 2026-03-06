@@ -23,6 +23,21 @@ const userSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        xp: {
+            type: Number,
+            default: 0,
+        },
+        level: {
+            type: Number,
+            default: 1,
+        },
+        badges: [
+            {
+                name: String,
+                awardedAt: { type: Date, default: Date.now },
+                icon: String
+            }
+        ]
     },
     {
         timestamps: true,

@@ -1,4 +1,5 @@
 const Skill = require('../models/SkillModel');
+const { addXP } = require('./gamificationController');
 
 // @desc    Get all skills for a user
 // @route   GET /api/skills
@@ -63,8 +64,9 @@ const incrementSkillGrowth = async (userId, skillName, hours) => {
         // Calculate level gain: 1 level per 10 hours (simple logic)
         const skill = await Skill.findOne({ userId, name: skillName });
 
-        let newHours = (skill?.hoursSpent || 0) + hours;
-        let newLevel = Math.min(100, Math.floor(newHours / 10) + 1); // Max level 100
+        if (newLevel > (skill?.level || 1)) {
+            await addXP(userId, 'SKILL_LEVEL');
+        }
 
         await Skill.findOneAndUpdate(
             { userId, name: skillName },
