@@ -5,6 +5,7 @@ const connectDB = require('./src/config/db');
 
 const authRoutes = require('./src/routes/authRoutes.js')
 const taskRoutes = require('./src/routes/taskRoutes.js')
+const timeRoutes = require('./src/routes/timeRoutes.js')
 
 const app = express();
 
@@ -16,6 +17,7 @@ connectDB();
 
 app.use('/api/auth', authRoutes)
 app.use('/api/tasks', taskRoutes)
+app.use('/api/time', timeRoutes)
 
 
 app.get('/', (req, res) => {
